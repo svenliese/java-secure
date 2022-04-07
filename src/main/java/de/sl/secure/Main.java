@@ -13,6 +13,7 @@ public class Main {
     private static final String OPTION_OK = "ok";
     private static final String OPTION_SAVE = "save";
     private static final String OPTION_RETRY = "retry";
+    private static final String OPTION_NEW_PASS = "new pass";
 
     private static final String PREF_FILENAME = "filename";
 
@@ -130,8 +131,8 @@ public class Main {
         return new char[0];
     }
 
-    private static String editFile(SecureFile file) {
-        final String[] options = {OPTION_SAVE, OPTION_CANCEL};
+    private static boolean editFile(SecureFile file) {
+        final String[] options = {OPTION_SAVE, OPTION_NEW_PASS, OPTION_CANCEL};
         final JEditorPane editor = new JEditorPane();
         editor.setText(file.readContent());
         final JScrollPane scrollPane = new JScrollPane(editor);
@@ -147,31 +148,31 @@ public class Main {
             options[0]
         );
         if(options[what].equals(OPTION_CANCEL)) {
-            return null;
-        }
-        return editor.getText();
-    }
-
-    public static void main(String[] args) {
-
-        SecureFile file = getFile();
-        if(file==null) {
-            return;
+            return true;
         }
 
-        final String content = editFile(file);
-        if(content==null || content.length()==0) {
-            return;
-        }
+        final String content = editor.getText();
 
-        if(!file.isEncrypted()) {
+        if(options[what].equals(OPTION_NEW_PASS) || !file.isEncrypted()) {
             final char[] pass = getPassForEncryption();
             if (pass.length == 0) {
-                return;
+                return false;
             }
             file = new SecureFile(file.getFile(), new String(pass));
         }
 
         file.saveContent(content);
+
+        return true;
+    }
+
+    public static void main(String[] args) {
+        SecureFile file = getFile();
+        if(file!=null) {
+            boolean canExit;
+            do {
+                canExit = editFile(file);
+            } while(!canExit);
+        }
     }
 }
