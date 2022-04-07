@@ -20,6 +20,8 @@ public class Main {
     private static final String MSG_ENTER_PASS = "enter password";
     private static final String MSG_CONFIRM_PASS = "confirm password";
 
+    private static final char[] NO_PASS = {};
+
     private static SecureFile getFile() {
         final Preferences preferences = Preferences.userNodeForPackage(Main.class);
         final String fileName = preferences.get(PREF_FILENAME, null);
@@ -46,7 +48,7 @@ public class Main {
             options[0]
         );
 
-        if(options[what].equals(OPTION_CANCEL)) {
+        if(what<0 || options[what].equals(OPTION_CANCEL)) {
             return null;
         }
 
@@ -61,8 +63,8 @@ public class Main {
             return new SecureFile(file);
         }
 
-        char[] pass = getPassForDecryption(MSG_ENTER_PASS);
-        if(pass.length==0) {
+        final char[] pass = getPassForDecryption(MSG_ENTER_PASS);
+        if(pass==NO_PASS) {
             return null;
         }
 
@@ -82,8 +84,8 @@ public class Main {
             options,
             options[0]
         );
-        if(options[what].equals(OPTION_CANCEL)) {
-            return new char[0];
+        if(what<0 || options[what].equals(OPTION_CANCEL)) {
+            return NO_PASS;
         }
         return passwordField.getPassword();
     }
@@ -104,10 +106,10 @@ public class Main {
             options,
             options[0]
         );
-        return options[what].equals(OPTION_RETRY);
+        return what>=0 && options[what].equals(OPTION_RETRY);
     }
 
-    private static char[] getPassForEncryption() {
+    private static char[] getConfirmedPass() {
 
         char[] first;
         char[] second;
@@ -128,15 +130,18 @@ public class Main {
 
         } while(retry());
 
-        return new char[0];
+        return NO_PASS;
     }
 
     private static boolean editFile(SecureFile file) {
         final String[] options = {OPTION_SAVE, OPTION_NEW_PASS, OPTION_CANCEL};
+
         final JEditorPane editor = new JEditorPane();
         editor.setText(file.readContent());
+
         final JScrollPane scrollPane = new JScrollPane(editor);
         scrollPane.setPreferredSize(new Dimension(600, 400));
+
         final int what = JOptionPane.showOptionDialog(
             null,
             scrollPane,
@@ -147,15 +152,16 @@ public class Main {
             options,
             options[0]
         );
-        if(options[what].equals(OPTION_CANCEL)) {
+
+        if(what<0 || options[what].equals(OPTION_CANCEL)) {
             return true;
         }
 
         final String content = editor.getText();
 
         if(options[what].equals(OPTION_NEW_PASS) || !file.isEncrypted()) {
-            final char[] pass = getPassForEncryption();
-            if (pass.length == 0) {
+            final char[] pass = getConfirmedPass();
+            if (pass == NO_PASS) {
                 return false;
             }
             file = new SecureFile(file.getFile(), new String(pass));
@@ -167,7 +173,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        SecureFile file = getFile();
+        final SecureFile file = getFile();
         if(file!=null) {
             boolean canExit;
             do {

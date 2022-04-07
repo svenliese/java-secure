@@ -24,17 +24,20 @@ public class AES {
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
-    public String encrypt(final String strToEncrypt) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
+    private Cipher getCipher(int mode) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         GCMParameterSpec parameterSpec = new GCMParameterSpec(128, "iv".getBytes());
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, parameterSpec);
+        cipher.init(mode, secretKey, parameterSpec);
+        return cipher;
+    }
+
+    public String encrypt(final String strToEncrypt) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
+        final Cipher cipher = getCipher(Cipher.ENCRYPT_MODE);
         return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes(StandardCharsets.UTF_8)));
     }
 
     public String decrypt(final String strToDecrypt) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        GCMParameterSpec parameterSpec = new GCMParameterSpec(128, "iv".getBytes());
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, parameterSpec);
+        final Cipher cipher = getCipher(Cipher.DECRYPT_MODE);
         return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));
     }
 }
