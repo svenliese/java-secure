@@ -16,17 +16,7 @@ public class SecureFile {
         this(file, null);
     }
 
-    static String readEncrypted(File file, String pass) {
-        try(FileInputStream is = new FileInputStream(file)) {
-            final AES aes = new AES(pass);
-            final byte[] data = is.readAllBytes();
-            return aes.decrypt(new String(data));
-        } catch(Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-    }
-
-    static String readNormal(File file) {
+    static String readFromFile(File file) {
         try(FileInputStream is = new FileInputStream(file)) {
             final byte[] data = is.readAllBytes();
             return new String(data);
@@ -35,18 +25,7 @@ public class SecureFile {
         }
     }
 
-    static void saveEncrypted(File file, String content, String pass) {
-        try(FileWriter writer = new FileWriter(file)) {
-            final AES aes = new AES(pass);
-            final String encoded = aes.encrypt(content);
-            writer.write(encoded);
-            writer.flush();
-        } catch(Exception ex) {
-            throw new IllegalStateException(ex);
-        }
-    }
-
-    static void saveNormal(File file, String content) {
+    static void saveToFile(File file, String content) {
         try(FileWriter writer = new FileWriter(file)) {
             writer.write(content);
             writer.flush();
@@ -64,18 +43,32 @@ public class SecureFile {
     }
 
     public String readContent() {
+        String content = readFromFile(file);
+
         if(isEncrypted()) {
-            return readEncrypted(file, pass);
-        } else {
-            return readNormal(file);
+            try {
+                final AES aes = new AES(pass);
+                content = aes.decrypt(content);
+            } catch(Exception ex) {
+                throw new IllegalStateException(ex);
+            }
         }
+
+        return content;
     }
 
     public void saveContent(String content) {
+        String contentToSave = content;
+
         if(isEncrypted()) {
-            saveEncrypted(file, content, pass);
-        } else {
-            saveNormal(file, content);
+            try {
+                final AES aes = new AES(pass);
+                contentToSave = aes.encrypt(content);
+            } catch (Exception ex) {
+                throw new IllegalStateException(ex);
+            }
         }
+
+        saveToFile(file, contentToSave);
     }
 }
