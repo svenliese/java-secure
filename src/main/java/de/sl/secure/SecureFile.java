@@ -5,13 +5,15 @@ import java.io.*;
 public class SecureFile {
 
     private final File file;
+    private final String pass;
 
-    private boolean encrypted;
-    private String pass;
-
-    SecureFile(File file, boolean encrypted) {
+    SecureFile(File file, String pass) {
         this.file = file;
-        this.encrypted = encrypted;
+        this.pass = pass;
+    }
+
+    SecureFile(File file) {
+        this(file, null);
     }
 
     static String readEncrypted(File file, String pass) {
@@ -54,16 +56,15 @@ public class SecureFile {
     }
 
     public boolean isEncrypted() {
-        return encrypted;
+        return pass!=null;
     }
 
-    public void setPass(String pass) {
-        this.pass = pass;
-        this.encrypted = true;
+    public File getFile() {
+        return file;
     }
 
     public String readContent() {
-        if(encrypted) {
+        if(isEncrypted()) {
             return readEncrypted(file, pass);
         } else {
             return readNormal(file);
@@ -71,7 +72,7 @@ public class SecureFile {
     }
 
     public void saveContent(String content) {
-        if(encrypted) {
+        if(isEncrypted()) {
             saveEncrypted(file, content, pass);
         } else {
             saveNormal(file, content);

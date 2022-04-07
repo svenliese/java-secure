@@ -1,16 +1,12 @@
 package de.sl.secure;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-public class SecureFileTest {
-
-    private File tmpFile;
+class SecureFileTest {
 
     void deleteTmpFile(File tmpFile) {
         if(tmpFile!=null) {
@@ -32,7 +28,7 @@ public class SecureFileTest {
         final File tmpFile = createTmpFile();
 
         try {
-            final SecureFile file = new SecureFile(tmpFile, false);
+            final SecureFile file = new SecureFile(tmpFile);
             Assertions.assertFalse(file.isEncrypted());
 
             final String content = "eins\n\nzwei\n";
@@ -50,8 +46,7 @@ public class SecureFileTest {
         final File tmpFile = createTmpFile();
 
         try {
-            final SecureFile file = new SecureFile(tmpFile, true);
-            file.setPass("mypass");
+            final SecureFile file = new SecureFile(tmpFile, "mypass");
             Assertions.assertTrue(file.isEncrypted());
 
             final String content = "eins\n\nzwei\n";

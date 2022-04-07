@@ -52,7 +52,16 @@ public class Main {
 
         preferences.put(PREF_FILENAME, file.getPath());
 
-        return new SecureFile(file, options[what].equals(OPTION_DECRYPT));
+        if(options[what].equals(OPTION_OPEN)) {
+            return new SecureFile(file);
+        }
+
+        char[] pass = getPass();
+        if(pass.length==0) {
+            return null;
+        }
+
+        return new SecureFile(file, new String(pass));
     }
 
     private static char[] getPass() {
@@ -69,7 +78,7 @@ public class Main {
             options[0]
         );
         if(options[what].equals(OPTION_CANCEL)) {
-            return null;
+            return new char[0];
         }
         return passwordField.getPassword();
     }
@@ -98,17 +107,9 @@ public class Main {
 
     public static void main(String[] args) {
 
-        final SecureFile file = getFile();
+        SecureFile file = getFile();
         if(file==null) {
             return;
-        }
-
-        if(file.isEncrypted()) {
-            final char[] pass = getPass();
-            if (pass == null || pass.length == 0) {
-                return;
-            }
-            file.setPass(new String(pass));
         }
 
         final String content = editFile(file);
@@ -118,10 +119,10 @@ public class Main {
 
         if(!file.isEncrypted()) {
             final char[] pass = getPass();
-            if (pass == null || pass.length == 0) {
+            if (pass.length == 0) {
                 return;
             }
-            file.setPass(new String(pass));
+            file = new SecureFile(file.getFile(), new String(pass));
         }
 
         file.saveContent(content);

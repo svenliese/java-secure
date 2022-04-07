@@ -3,7 +3,7 @@ package de.sl.secure;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class AESTest {
+class AESTest {
 
     @Test
     void shouldEncryptDecrypt() {
