@@ -1,6 +1,8 @@
 package de.sl.secure;
 
 import javax.swing.*;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import java.awt.*;
 import java.io.File;
 import java.util.prefs.Preferences;
@@ -72,8 +74,24 @@ public class Main {
     }
 
     private static char[] getPassForDecryption(String title) {
-        final String[] options = {OPTION_OK, OPTION_CANCEL};
+
         final JPasswordField passwordField = new JPasswordField();
+        passwordField.addAncestorListener(
+            new AncestorListener() {
+                @Override
+                public void ancestorRemoved( final AncestorEvent event ) {
+                }
+                @Override
+                public void ancestorMoved( final AncestorEvent event ) {
+                }
+                @Override
+                public void ancestorAdded( final AncestorEvent event ) {
+                    passwordField.requestFocusInWindow();
+                }
+            }
+        );
+
+        final String[] options = {OPTION_OK, OPTION_CANCEL};
         final int what = JOptionPane.showOptionDialog(
             null,
             passwordField,
@@ -84,6 +102,7 @@ public class Main {
             options,
             options[0]
         );
+
         if(what<0 || options[what].equals(OPTION_CANCEL)) {
             return NO_PASS;
         }
