@@ -4,7 +4,7 @@ import javax.swing.*;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import java.awt.*;
-import java.io.File;
+import java.io.*;
 import java.util.prefs.Preferences;
 
 public class Main {
@@ -191,13 +191,38 @@ public class Main {
         return true;
     }
 
+    static void showError(Throwable ex) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+
+        JTextArea textArea = new JTextArea(sw.toString());
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+
+        JOptionPane.showOptionDialog(
+            null,
+            scrollPane,
+            "error",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.ERROR_MESSAGE,
+            null,
+            new String[]{"ok"},
+            "ok"
+        );
+    }
+
     public static void main(String[] args) {
-        final SecureFile file = getFile();
-        if(file!=null) {
-            boolean canExit;
-            do {
-                canExit = editFile(file);
-            } while(!canExit);
+        try {
+            final SecureFile file = getFile();
+            if (file != null) {
+                boolean canExit;
+                do {
+                    canExit = editFile(file);
+                } while (!canExit);
+            }
+        } catch(Exception ex) {
+            showError(ex);
         }
     }
 }
