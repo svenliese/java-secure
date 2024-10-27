@@ -13,6 +13,9 @@ public class Editor implements KeyListener {
 
     private JEditorPane editor;
 
+    private String searchText;
+    private int lastFoundIndex;
+
     public Editor(SecureFile file) {
         this.file = file;
     }
@@ -63,7 +66,7 @@ public class Editor implements KeyListener {
         JTextField input = new JTextField();
 
         final int what = JOptionPane.showOptionDialog(
-                editor,
+                null,
                 input,
                 "search for",
                 JOptionPane.DEFAULT_OPTION,
@@ -80,10 +83,15 @@ public class Editor implements KeyListener {
         return input.getText();
     }
 
-    private void goTo(String searchFor) {
-        final int pos = editor.getText().indexOf(searchFor);
-        if(pos>=0) {
+    private void goToNext() {
+        final String text = editor.getText().replaceAll("\n", "");
+        final int pos = text.indexOf(searchText, lastFoundIndex+1);
+        if(pos>lastFoundIndex) {
             editor.setCaretPosition(pos);
+            lastFoundIndex = pos;
+        } else {
+            lastFoundIndex = -1;
+            editor.setCaretPosition(0);
         }
     }
 
@@ -94,9 +102,15 @@ public class Editor implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if(e.getKeyCode()==70 && e.isControlDown()) {
-            final String searchFor = getSearchText();
-            if(searchFor!=null && !searchFor.isEmpty()) {
-                goTo(searchFor);
+            searchText = getSearchText();
+            if(searchText!=null && !searchText.isEmpty()) {
+                lastFoundIndex = -1;
+                goToNext();
+            }
+            editor.requestFocus();
+        } else if(e.getKeyCode()==114) {
+            if(searchText!=null && !searchText.isEmpty()) {
+                goToNext();
             }
             editor.requestFocus();
         }
